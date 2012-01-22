@@ -1,0 +1,21 @@
+﻿<Properties>
+  <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Hockey/Scripts/Implementation/Scenes/GameplayScene.cs">
+    <Files>
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/PlayerIngameNetwork.cs" Line="5" Column="1" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayNetwork.cs" Line="26" Column="1" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayScene.cs" Line="85" Column="31" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayLocal.cs" Line="4" Column="39" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/HockeyTable.cs" Line="16" Column="18" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/PlayerIngame.cs" Line="12" Column="26" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/PlayerIngameAI.cs" Line="5" Column="1" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Utilities/GameHelpers.cs" Line="14" Column="3" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Extra/PlayerController.cs" Line="44" Column="88" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Utilities/GameTypes.cs" Line="27" Column="2" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
+  <MonoDevelop.Ide.DebuggingService.Breakpoints>
+    <BreakpointStore />
+  </MonoDevelop.Ide.DebuggingService.Breakpoints>
+  <MonoDevelop.Ide.DebuggingService.PinnedWatches />
+</Properties>
