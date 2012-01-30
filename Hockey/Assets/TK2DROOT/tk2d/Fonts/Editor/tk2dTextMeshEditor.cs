@@ -6,6 +6,7 @@ using System.Collections.Generic;
 class tk2dTextMeshEditor : Editor
 {
 	tk2dFont[] allBmFontImporters = null;	// all generators
+	Vector2 gradientScroll;
 	
     public override void OnInspectorGUI()
     {
@@ -39,11 +40,75 @@ class tk2dTextMeshEditor : Editor
 				textMesh.renderer.material = allBmFontImporters[newId].material;
 			}
 			
+			EditorGUILayout.BeginHorizontal();
 			textMesh.maxChars = EditorGUILayout.IntField("Max Chars", textMesh.maxChars);
-			textMesh.text = EditorGUILayout.TextField("Text", textMesh.text);
+			if (textMesh.maxChars < 1) textMesh.maxChars = 1;
+			if (GUILayout.Button("Fit", GUILayout.MaxWidth(32.0f)))
+			{
+				textMesh.maxChars = textMesh.NumDrawnCharacters();
+				GUI.changed = true;
+			}
+			EditorGUILayout.EndHorizontal();
+			
+			GUILayout.BeginHorizontal();
+			EditorGUILayout.PrefixLabel("Text");
+			textMesh.text = EditorGUILayout.TextArea(textMesh.text, GUILayout.Height(64));
+			GUILayout.EndHorizontal();
+			
 			textMesh.anchor = (TextAnchor)EditorGUILayout.EnumPopup("Anchor", textMesh.anchor);
 			textMesh.kerning = EditorGUILayout.Toggle("Kerning", textMesh.kerning);
+			textMesh.spacing = EditorGUILayout.FloatField("Spacing", textMesh.spacing);
 			textMesh.scale = EditorGUILayout.Vector3Field("Scale", textMesh.scale);
+			
+			if (textMesh.font.textureGradients && textMesh.font.gradientCount > 0)
+			{
+				//textMesh.textureGradient = EditorGUILayout.IntSlider("Gradient", textMesh.textureGradient, 0, textMesh.font.gradientCount - 1);
+				
+				GUILayout.BeginHorizontal();
+				
+				EditorGUILayout.PrefixLabel("TextureGradient");
+				
+				// Draw gradient scroller
+				bool drawGradientScroller = true;
+				if (drawGradientScroller)
+				{
+					textMesh.textureGradient = textMesh.textureGradient % textMesh.font.gradientCount;
+					
+					gradientScroll = EditorGUILayout.BeginScrollView(gradientScroll, GUILayout.ExpandHeight(false));
+					Rect r = GUILayoutUtility.GetRect(textMesh.font.gradientTexture.width, textMesh.font.gradientTexture.height, GUILayout.ExpandWidth(false), GUILayout.ExpandHeight(false));
+					GUI.DrawTexture(r, textMesh.font.gradientTexture);
+					
+					Rect hr = r;
+					hr.width /= textMesh.font.gradientCount;
+					hr.x += hr.width * textMesh.textureGradient;
+					float ox = hr.width / 8;
+					float oy = hr.height / 8;
+					Vector3[] rectVerts = { new Vector3(hr.x + 0.5f + ox, hr.y + oy, 0), new Vector3(hr.x + hr.width - ox, hr.y + oy, 0), new Vector3(hr.x + hr.width - ox, hr.y + hr.height -  0.5f - oy, 0), new Vector3(hr.x + ox, hr.y + hr.height - 0.5f - oy, 0) };
+					Handles.DrawSolidRectangleWithOutline(rectVerts, new Color(0,0,0,0.2f), new Color(0,0,0,1));
+					
+					if (GUIUtility.hotControl == 0 && Event.current.type == EventType.MouseDown && r.Contains(Event.current.mousePosition))
+					{
+						textMesh.textureGradient = (int)(Event.current.mousePosition.x / (textMesh.font.gradientTexture.width / textMesh.font.gradientCount));
+						GUI.changed = true;
+					}
+	
+					EditorGUILayout.EndScrollView();
+				}
+				
+				
+				GUILayout.EndHorizontal();
+				
+				textMesh.inlineStyling = EditorGUILayout.Toggle("Inline Styling", textMesh.inlineStyling);
+				if (textMesh.inlineStyling)
+				{
+					Color bg = GUI.backgroundColor;
+					GUI.backgroundColor = new Color32(154, 176, 203, 255);
+					GUILayout.TextArea("Inline style commands\n" +
+					                   "^0-9 - select gradient\n" +
+									   "^^ - print ^");
+					GUI.backgroundColor = bg;						
+				}
+			}
 			
 			EditorGUILayout.BeginHorizontal();
 			
@@ -61,14 +126,26 @@ class tk2dTextMeshEditor : Editor
 				textMesh.scale = s;
 				GUI.changed = true;
 			}			
+
+			EditorGUILayout.EndHorizontal();
 			
-			if ( GUILayout.Button("Make Pixel Perfect", GUILayout.ExpandWidth(true) ))
+			EditorGUILayout.BeginHorizontal();
+			
+			if (GUILayout.Button("Bake Scale"))
+			{
+				tk2dScaleUtility.Bake(textMesh.transform);
+				GUI.changed = true;
+			}
+			
+			GUIContent pixelPerfectButton = new GUIContent("1:1", "Make Pixel Perfect");
+			if ( GUILayout.Button(pixelPerfectButton ))
 			{
 				if (tk2dPixelPerfectHelper.inst) tk2dPixelPerfectHelper.inst.Setup();
 				textMesh.MakePixelPerfect();
 				GUI.changed = true;
 			}
 			textMesh.pixelPerfect = GUILayout.Toggle(textMesh.pixelPerfect, "Always", GUILayout.Width(60.0f));
+			
 			EditorGUILayout.EndHorizontal();
 			
 			textMesh.useGradient = EditorGUILayout.Toggle("Use Gradient", textMesh.useGradient);

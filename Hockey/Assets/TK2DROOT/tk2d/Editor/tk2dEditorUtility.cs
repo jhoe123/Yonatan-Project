@@ -5,6 +5,34 @@ using System.IO;
 
 public static class tk2dEditorUtility
 {
+	[MenuItem(tk2dMenu.root + "About", false, 10100)]
+	public static void About2DToolkit()
+	{
+		EditorUtility.DisplayDialog("About 2D Toolkit",
+		                            "2D Toolkit Version 1.55\n" +
+		                            "Copyright (c) 2011 Unikron Software Ltd",
+		                            "Ok");
+	}
+	
+	[MenuItem(tk2dMenu.root + "Documentation", false, 10099)]
+	public static void LaunchWikiDocumentation()
+	{
+		Application.OpenURL("http://www.unikronsoftware.com/2dtoolkit/wiki");
+	}
+
+	[MenuItem(tk2dMenu.root + "Rebuild Index", false, 1)]
+	public static void RebuildIndex()
+	{
+		AssetDatabase.DeleteAsset(indexPath);
+		CreateIndex();
+	}
+	
+	[MenuItem(tk2dMenu.root + "Preferences...", false, 1)]
+	public static void ShowPreferences()
+	{
+		EditorWindow.GetWindow( typeof(tk2dPreferencesEditor), true, "2D Toolkit Preferences" );
+	}	
+	
 	public static string CreateNewPrefab(string name) // name is the filename of the prefab EXCLUDING .prefab
 	{
 		Object obj = Selection.activeObject;
@@ -56,18 +84,14 @@ public static class tk2dEditorUtility
 	}
 	
 	
-	const string indexPath = "Assets/.tk2d.prefab";
+	const string indexPath = "Assets/-tk2d.asset";
 	static tk2dIndex index = null;
 	
 	public static tk2dIndex GetExistingIndex()
 	{
 		if (index == null)
 		{
-			GameObject go = AssetDatabase.LoadAssetAtPath( indexPath, typeof(GameObject) ) as GameObject;
-			if (go)
-			{
-				index = go.GetComponent<tk2dIndex>();
-			}
+			index = Resources.LoadAssetAtPath(indexPath, typeof(tk2dIndex)) as tk2dIndex;
 		}
 		return index;
 	}
@@ -94,9 +118,7 @@ public static class tk2dEditorUtility
 	
 	static void CreateIndex()
 	{
-		GameObject go = new GameObject();
-		tk2dIndex newIndex = go.AddComponent<tk2dIndex>();
-		go.active = false;
+		tk2dIndex newIndex = ScriptableObject.CreateInstance<tk2dIndex>();
 		
 		List<string> rebuildSpriteCollectionPaths = new List<string>();
 		
@@ -156,9 +178,7 @@ public static class tk2dEditorUtility
 		EditorUtility.ClearProgressBar();
 		
 		// Create index
-		Object p = EditorUtility.CreateEmptyPrefab(indexPath);
-		EditorUtility.ReplacePrefab(go, p, ReplacePrefabOptions.ConnectToPrefab);
-		GameObject.DestroyImmediate(go);
+		AssetDatabase.CreateAsset(newIndex, indexPath);
 		
 		// unload all unused assets
 		tk2dEditorUtility.UnloadUnusedAssets();
@@ -264,14 +284,116 @@ public static class tk2dEditorUtility
 	
 	public static void UnloadUnusedAssets()
 	{
-		Object previousSelectedObject = Selection.activeObject;
-		Selection.activeObject = null;
-
-		EditorUtility.UnloadUnusedAssetsIgnoreManagedReferences();
+		EditorUtility.UnloadUnusedAssets();
 		System.GC.Collect();
 		
 		index = null;
-
-		Selection.activeObject = previousSelectedObject;
 	}	
+	
+    public static int NameCompare(string na, string nb)
+    {
+		if (na.Length == 0 && nb.Length != 0) return 1;
+		else if (na.Length != 0 && nb.Length == 0) return -1;
+		else if (na.Length == 0 && nb.Length == 0) return 0;
+
+        int numStartA = na.Length - 1;
+
+        // last char is not a number, compare as regular strings
+        if (na[numStartA] < '0' || na[numStartA] > '9')
+            return System.String.Compare(na, nb, true);
+
+        while (numStartA > 0 && na[numStartA - 1] >= '0' && na[numStartA - 1] <= '9')
+            numStartA--;
+
+        int comp = System.String.Compare(na, 0, nb, 0, numStartA);
+
+        if (comp == 0)
+        {
+            if (nb.Length > numStartA)
+            {
+                bool numeric = true;
+                for (int i = numStartA; i < nb.Length; ++i)
+                {
+                    if (nb[i] < '0' || nb[i] > '9')
+                    {
+                        numeric = false;
+                        break;
+                    }
+                }
+
+                if (numeric)
+                {
+                    int numA = System.Convert.ToInt32(na.Substring(numStartA));
+                    int numB = System.Convert.ToInt32(nb.Substring(numStartA));
+                    return numA - numB;
+                }
+            }
+        }
+
+        return System.String.Compare(na, nb);
+    }
+	
+	class SpriteCollectionLUT
+	{
+		public int buildKey;
+		public string[] sortedSpriteNames;
+		public int[] spriteIdToSortedList;
+		public int[] sortedListToSpriteId;
+	}
+	static Dictionary<string, SpriteCollectionLUT> spriteSelectorLUT = new Dictionary<string, SpriteCollectionLUT>();
+	
+	public static int SpriteSelectorPopup(string label, int spriteId, tk2dSpriteCollectionData spriteCollection)
+	{
+		int newSpriteId = spriteId;
+		
+		// cope with guid not existing
+		if (spriteCollection.dataGuid == null || spriteCollection.dataGuid.Length == 0)
+		{
+			spriteCollection.dataGuid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(spriteCollection));
+		}
+		
+		SpriteCollectionLUT lut = null;
+		spriteSelectorLUT.TryGetValue(spriteCollection.dataGuid, out lut);
+		if (lut == null)
+		{
+			lut = new SpriteCollectionLUT();
+			lut.buildKey = spriteCollection.buildKey - 1; // force mismatch
+			spriteSelectorLUT[spriteCollection.dataGuid] = lut;
+		}
+		
+		if (lut.buildKey != spriteCollection.buildKey)
+		{
+			var spriteDefs = spriteCollection.spriteDefinitions;
+			string[] spriteNames = new string[spriteDefs.Length];
+			int[] spriteLookupIndices = new int[spriteNames.Length];
+			for (int i = 0; i < spriteDefs.Length; ++i)
+			{
+				spriteNames[i] = spriteDefs[i].name;
+				spriteLookupIndices[i] = i;
+			}
+			System.Array.Sort(spriteLookupIndices, (int a, int b) => tk2dEditorUtility.NameCompare((spriteDefs[a]!=null)?spriteDefs[a].name:"", (spriteDefs[b]!=null)?spriteDefs[b].name:""));
+			
+			lut.sortedSpriteNames = new string[spriteNames.Length];
+			lut.sortedListToSpriteId = new int[spriteNames.Length];
+			lut.spriteIdToSortedList = new int[spriteNames.Length];
+			
+			for (int i = 0; i < spriteLookupIndices.Length; ++i)
+			{
+				lut.spriteIdToSortedList[spriteLookupIndices[i]] = i;
+				lut.sortedListToSpriteId[i] = spriteLookupIndices[i];
+				lut.sortedSpriteNames[i] = spriteNames[spriteLookupIndices[i]];
+			}
+			
+			lut.buildKey = spriteCollection.buildKey;
+		}
+		
+		int spriteLocalIndex = lut.spriteIdToSortedList[spriteId];
+		int newSpriteLocalIndex = (label == null)?EditorGUILayout.Popup(spriteLocalIndex, lut.sortedSpriteNames):EditorGUILayout.Popup(label, spriteLocalIndex, lut.sortedSpriteNames);
+		if (newSpriteLocalIndex != spriteLocalIndex)
+		{
+			newSpriteId = lut.sortedListToSpriteId[newSpriteLocalIndex];
+		}
+		
+		return newSpriteId;
+	}
 }

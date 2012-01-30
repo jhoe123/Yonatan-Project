@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Atlas
+namespace tk2dAtlas
 {
 
 	class RectSize

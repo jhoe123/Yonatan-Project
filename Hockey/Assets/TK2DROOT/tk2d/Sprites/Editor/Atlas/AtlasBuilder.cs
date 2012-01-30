@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Atlas
+namespace tk2dAtlas
 {
 	public class AtlasEntry
 	{
@@ -213,7 +213,7 @@ namespace Atlas
 						if (!allUsed) 
 						{
 							// Can only try another size when it already has been scaled down for the first time
-							if (thisCellW < atlasWidth && thisCellH < atlasHeight)
+							if (thisCellW < atlasWidth || thisCellH < atlasHeight)
 							{
 								// Tried to scale down, but the texture doesn't fit, so revert previous change, and 
 								// iterate over the data again forcing a pass even though there is wastage

@@ -133,7 +133,7 @@ public class GameplayNetwork : GameplayScene {
 	
 	[RPC]
 	//@RPC ALL: callback when the goal end
-	public override void OnPlayerGoalEnd ()
+	protected override void OnPlayerGoalEnd ()
 	{
 		base.OnPlayerGoalEnd ();
 		if( mIsHost )

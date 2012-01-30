@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Atlas
+namespace tk2dAtlas
 {
 
 	/** MaxRectsBinPack implements the MAXRECTS data structure and different bin packing algorithms that 

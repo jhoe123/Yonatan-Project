@@ -23,6 +23,22 @@ namespace SCGE
 [CustomEditor(typeof(tk2dSpriteCollection))]
 public class tk2dSpriteCollectionEditor : Editor
 {
+	int[] padAmountValues;
+	string[] padAmountLabels;
+
+	void OnEnable()
+	{
+		int MAX_PAD_AMOUNT = 18;
+		padAmountValues = new int[MAX_PAD_AMOUNT];
+		padAmountLabels = new string[MAX_PAD_AMOUNT];
+		for (int i = 0; i < MAX_PAD_AMOUNT; ++i)
+		{
+			padAmountValues[i] = -1 + i;
+			padAmountLabels[i] = (i==0)?"Default":((i-1).ToString());
+		}
+		
+	}
+	
 	void OnDestroy()
 	{
 		tk2dSpriteThumbnailCache.ReleaseSpriteThumbnailCache();
@@ -45,6 +61,10 @@ public class tk2dSpriteCollectionEditor : Editor
 		
 		
 		DrawDefaultInspector();
+		
+		// Draw additional stuff
+		gen.padAmount = EditorGUILayout.IntPopup("Pad Amount", gen.padAmount, padAmountLabels, padAmountValues);
+		
 		DrawAtlasView(gen);
 		
 		EditorGUILayout.BeginHorizontal();
@@ -84,7 +104,7 @@ public class tk2dSpriteCollectionEditor : Editor
 					tk2dSpriteCollectionBuilder.Rebuild(gen);
 				}
 				
-				tk2dSpriteCollectionEditorPopup v = EditorWindow.GetWindow( typeof(tk2dSpriteCollectionEditorPopup) ) as tk2dSpriteCollectionEditorPopup;
+				tk2dSpriteCollectionEditorPopup v = EditorWindow.GetWindow( typeof(tk2dSpriteCollectionEditorPopup), true, "Sprite Collection Editor" ) as tk2dSpriteCollectionEditorPopup;
 				v.SetGenerator(gen);
 			}
 		}
@@ -145,9 +165,14 @@ public class tk2dSpriteCollectionEditor : Editor
             go.AddComponent<tk2dSpriteCollection>();
             go.active = false;
 
-            Object p = EditorUtility.CreateEmptyPrefab(path);
+#if (UNITY_3_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_4)
+			Object p = EditorUtility.CreateEmptyPrefab(path);
             EditorUtility.ReplacePrefab(go, p, ReplacePrefabOptions.ConnectToPrefab);
-
+#else
+			Object p = PrefabUtility.CreateEmptyPrefab(path);
+            PrefabUtility.ReplacePrefab(go, p, ReplacePrefabOptions.ConnectToPrefab);
+#endif
+			
             GameObject.DestroyImmediate(go);
         }
     }	

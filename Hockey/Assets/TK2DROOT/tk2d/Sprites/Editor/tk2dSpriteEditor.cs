@@ -4,8 +4,9 @@ using System.Collections.Generic;
 
 public class tk2dSpriteGeneratorCache
 {
-	public tk2dSpriteCollectionData[] all = null;	// all generators
+	public tk2dSpriteCollectionIndex[] all = null;	// all generators
 	public tk2dSpriteCollectionData current = null;	// generators bound to this object
+	public string currentGUID = "";
 }
 
 [CustomEditor(typeof(tk2dSprite))]
@@ -15,7 +16,7 @@ class tk2dSpriteEditor : Editor
 	
     public override void OnInspectorGUI()
     {
-        tk2dSprite sprite = (tk2dSprite)target;
+        tk2dBaseSprite sprite = (tk2dBaseSprite)target;
 		if (generatorCache == null)
 		{
 			generatorCache = new tk2dSpriteGeneratorCache();
@@ -31,19 +32,22 @@ class tk2dSpriteEditor : Editor
 	}
 	
 
-	protected void DrawSpriteEditorGUI(tk2dSprite sprite)
+	protected void DrawSpriteEditorGUI(tk2dBaseSprite sprite)
 	{
 		// maybe cache this if its too slow later
 		if (generatorCache.all == null || generatorCache.current != sprite.collection)
 		{
-			generatorCache.all = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionData();
+			generatorCache.all = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionIndex();
 			if (generatorCache.all != null)
 			{
+				string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(sprite.collection));
+				
 				for (int i = 0; i < generatorCache.all.Length; ++i)
 				{
-					if (generatorCache.all[i] == sprite.collection)
+					if (generatorCache.all[i].spriteCollectionDataGUID == guid)
 					{
-						generatorCache.current = generatorCache.all[i];
+						generatorCache.current = sprite.collection;
+						generatorCache.currentGUID = guid;
 						break;
 					}
 				}
@@ -60,17 +64,25 @@ class tk2dSpriteEditor : Editor
 			int selIndex = -1;
 			for (int i = 0; i < generatorCache.all.Length; ++i)
 			{
-				collNames[i] = generatorCache.all[i].spriteCollectionName;
-				if (generatorCache.all[i] == generatorCache.current)
+				collNames[i] = generatorCache.all[i].name;
+				if (generatorCache.all[i].spriteCollectionDataGUID == generatorCache.currentGUID)
 					selIndex = i;
 			}
 			
 			int newIndex = EditorGUILayout.Popup("Collection", (selIndex != -1) ? selIndex : 0, collNames); 
 			if (newIndex != selIndex)
 			{
-				generatorCache.current = generatorCache.all[newIndex];
-				int newId = (sprite.spriteId >= generatorCache.current.Count)?0:sprite.spriteId;
-				sprite.SwitchCollectionAndSprite(generatorCache.current, newId);
+				generatorCache.currentGUID = generatorCache.all[newIndex].spriteCollectionDataGUID;
+				GameObject go = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(generatorCache.currentGUID), typeof(GameObject)) as GameObject;
+				tk2dSpriteCollectionData data = go.GetComponent<tk2dSpriteCollectionData>();
+				if (data != null)
+				{
+					generatorCache.current =  data;
+					int newId = (sprite.spriteId >= generatorCache.current.Count)?0:sprite.spriteId;
+	
+					sprite.SwitchCollectionAndSprite(generatorCache.current, newId);
+					sprite.EditMode__CreateCollider();
+				}
 			}
 		}
 		
@@ -78,41 +90,41 @@ class tk2dSpriteEditor : Editor
         {
 			// sanity check sprite id
 			if (sprite.spriteId < 0 || sprite.spriteId >= sprite.collection.Count)
+			{
 				sprite.spriteId = 0;
+				sprite.EditMode__CreateCollider();
+			}
 			
             int newSpriteId = sprite.spriteId;
 			
 			if (generatorCache.current)
 			{
-				string[] spriteNames = new string[generatorCache.current.spriteDefinitions.Length];
-				for (int i = 0; i < generatorCache.current.spriteDefinitions.Length; ++i)
-				{
-					spriteNames[i] = generatorCache.current.spriteDefinitions[i].name;
-				}
+				newSpriteId = tk2dEditorUtility.SpriteSelectorPopup("Sprite", sprite.spriteId, generatorCache.current);
 				
-				newSpriteId = EditorGUILayout.Popup("Sprite", sprite.spriteId, spriteNames);
-				
-				if (generatorCache.current.version < 1)
+				if (tk2dPreferences.inst.displayTextureThumbs)
 				{
-					GUILayout.Label("No thumbnail data.\nPlease rebuild Sprite Collection.");
-				}
-				else
-				{
-					var tex = tk2dSpriteThumbnailCache.GetThumbnailTexture(generatorCache.current, sprite.spriteId);
-					if (tex) 
+					if (generatorCache.current.version < 1)
 					{
-						float w = tex.width;
-						float h = tex.height;
-						float maxSize = 128.0f;
-						if (w > maxSize)
+						GUILayout.Label("No thumbnail data.\nPlease rebuild Sprite Collection.");
+					}
+					else
+					{
+						var tex = tk2dSpriteThumbnailCache.GetThumbnailTexture(generatorCache.current, sprite.spriteId);
+						if (tex) 
 						{
-							h = h / w * maxSize;
-							w = maxSize;
+							float w = tex.width;
+							float h = tex.height;
+							float maxSize = 128.0f;
+							if (w > maxSize)
+							{
+								h = h / w * maxSize;
+								w = maxSize;
+							}
+							
+							Rect r = GUILayoutUtility.GetRect(w, h);
+							GUI.DrawTexture(r, tex, ScaleMode.ScaleToFit);
+							//GUILayout.Box(tex, GUILayout.Width(w), GUILayout.Height(h));
 						}
-						
-						Rect r = GUILayoutUtility.GetRect(w, h);
-						GUI.DrawTexture(r, tex, ScaleMode.ScaleToFit);
-						//GUILayout.Box(tex, GUILayout.Width(w), GUILayout.Height(h));
 					}
 				}
 			}
@@ -124,11 +136,17 @@ class tk2dSpriteEditor : Editor
 			if (newSpriteId != sprite.spriteId)
 			{
 				sprite.spriteId = newSpriteId;
+				sprite.EditMode__CreateCollider();
 				GUI.changed = true;
 			}
 
             sprite.color = EditorGUILayout.ColorField("Color", sprite.color);
-			sprite.scale = EditorGUILayout.Vector3Field("Scale", sprite.scale);
+			Vector3 newScale = EditorGUILayout.Vector3Field("Scale", sprite.scale);
+			if (newScale != sprite.scale)
+			{
+				sprite.scale = newScale;
+				sprite.EditMode__CreateCollider();
+			}
 			
 			EditorGUILayout.BeginHorizontal();
 			
@@ -146,6 +164,11 @@ class tk2dSpriteEditor : Editor
 				sprite.scale = s;
 				GUI.changed = true;
 			}
+			
+			EditorGUILayout.EndHorizontal();
+
+			EditorGUILayout.BeginHorizontal();
+			
 			if (GUILayout.Button("Reset Scale" ))
 			{
 				Vector3 s = sprite.scale;
@@ -155,8 +178,14 @@ class tk2dSpriteEditor : Editor
 				sprite.scale = s;
 				GUI.changed = true;
 			}
+			if (GUILayout.Button("Bake Scale"))
+			{
+				tk2dScaleUtility.Bake(sprite.transform);
+				GUI.changed = true;
+			}
 			
-			if ( GUILayout.Button("Make Pixel Perfect", GUILayout.ExpandWidth(true) ))
+			GUIContent pixelPerfectButton = new GUIContent("1:1", "Make Pixel Perfect");
+			if ( GUILayout.Button(pixelPerfectButton ))
 			{
 				if (tk2dPixelPerfectHelper.inst) tk2dPixelPerfectHelper.inst.Setup();
 				sprite.MakePixelPerfect();
@@ -165,6 +194,8 @@ class tk2dSpriteEditor : Editor
 			
 			sprite.pixelPerfect = GUILayout.Toggle(sprite.pixelPerfect, "Always", GUILayout.Width(60.0f));
 			EditorGUILayout.EndHorizontal();
+			
+			
         }
         else
         {
@@ -192,10 +223,16 @@ class tk2dSpriteEditor : Editor
 
 		if (sprColl == null)
 		{
-			tk2dSpriteCollectionData[] spriteCollections = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionData();
+			tk2dSpriteCollectionIndex[] spriteCollections = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionIndex();
 			foreach (var v in spriteCollections)
 			{
-				sprColl = v;
+				GameObject scgo = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(v.spriteCollectionDataGUID), typeof(GameObject)) as GameObject;
+				var sc = scgo.GetComponent<tk2dSpriteCollectionData>();
+				if (sc != null && sc.spriteDefinitions != null && sc.spriteDefinitions.Length > 0)
+				{
+					sprColl = sc;
+					break;
+				}
 			}
 
 			if (sprColl == null)

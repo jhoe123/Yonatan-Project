@@ -51,7 +51,7 @@ class tk2dStaticSpriteBatcherEditor : Editor
 					
 					bs.name = s.gameObject.name;
 					bs.color = s.color;
-					bs.localScale = s.scale;
+					bs.localScale = new Vector3(s.scale.x * s.transform.localScale.x, s.scale.y * s.transform.localScale.y, s.scale.z * s.transform.localScale.z);
 					bs.position = s.transform.localPosition;
 					bs.rotation = s.transform.localRotation;
 					bs.spriteId = s.spriteId;
@@ -81,8 +81,10 @@ class tk2dStaticSpriteBatcherEditor : Editor
 					s.collection = batcher.spriteCollection;
 					s.Build();
 
-					s.scale = v.localScale;
 					s.spriteId = v.spriteId;
+					s.EditMode__CreateCollider(); // needed to recreate the collider after setting spriteId
+
+					s.scale = v.localScale;
 					s.pixelPerfect = v.alwaysPixelPerfect;
 					s.color = v.color;
 				}

@@ -45,12 +45,19 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\TK2DROOT\tk2d\Editor\tk2dEditorUtility.cs" />
+     <Compile Include="Assets\TK2DROOT\tk2d\Editor\tk2dGuiUtility.cs" />
+     <Compile Include="Assets\TK2DROOT\tk2d\Editor\tk2dJSSupport.cs" />
+     <Compile Include="Assets\TK2DROOT\tk2d\Editor\tk2dMenu.cs" />
+     <Compile Include="Assets\TK2DROOT\tk2d\Editor\tk2dPreferencesEditor.cs" />
+     <Compile Include="Assets\TK2DROOT\tk2d\Editor\tk2dScaleUtility.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Fonts\Editor\tk2dFontEditor.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Fonts\Editor\tk2dTextMeshEditor.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\Atlas\AtlasBuilder.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\Atlas\MaxRectsBinPack.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\Atlas\Rect.cs" />
+     <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\Triangulator\Triangulator.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\tk2dAnimatedSpriteEditor.cs" />
+     <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\tk2dSlicedSpriteEditor.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\tk2dSpriteAnimationEditor.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\tk2dSpriteCollectionBuilder.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\Sprites\Editor\tk2dSpriteCollectionEditor.cs" />
@@ -64,6 +71,7 @@
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Vertex Colored Shaders\Mobile Transparent Vertex Color.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Miscellaneous Shaders\Mobile Detail.shader" />
      <None Include="Assets\TK2DROOT\tk2d\Shaders\PremulVertexColor.shader" />
+     <None Include="Assets\TK2DROOT\tk2d\Shaders\Blend2TexVertexColor.shader" />
      <None Include="Assets\TK2DROOT\tk2d\Shaders\BlendVertexColor.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Lightmap Shaders (Legacy)\Mobile Lightmap Reflective.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Particle Shaders\Mobile Particles Additive Culled.shader" />

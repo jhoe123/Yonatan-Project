@@ -1,15 +1,25 @@
 using UnityEngine;
 using System.Collections;
 
+/*
+ * GameplayScene.cs
+ * Jhoemar Pagao (c) 2011
+ * jhoemar.pagao@gmail.com
+ * 
+ * Controls the gameplay state of the game
+ * */
 public class GameplayScene : Scene {
 	
-	public static GameplayScene mCurrent;
+	public static GameplayScene mCurrent;								//the current instance of the game
 	
 	[SerializeField]
-	protected PlayerIngame mPlayer1;
+	protected int mMaxGoal;
 	
 	[SerializeField]
-	protected PlayerIngame mPlayer2;
+	protected PlayerIngame mPlayer1;									//the player 1 instance
+	
+	[SerializeField]
+	protected PlayerIngame mPlayer2;									//the player instance
 	
 	static protected PlayerInfo mOwnerInfo;
 	static protected PlayerInfo mOpponentInfo;
@@ -20,6 +30,14 @@ public class GameplayScene : Scene {
 	protected static PlayerIngame mOwnerPlayer;
 	public static PlayerIngame ownerPlayer
 	{ get{return mOwnerPlayer;}}
+	
+	//the player who occupied the bottom
+	public static PlayerIngame bottomPlayer
+	{ get{ return mCurrent.mPlayer1;}}
+	
+	//the player who occupied the top
+	public static PlayerIngame topPlayer
+	{ get{ return mCurrent.mPlayer2;}}
 	
 	//the player opponent
 	protected static PlayerIngame mOpponentPlayer;
@@ -36,6 +54,9 @@ public class GameplayScene : Scene {
 	public static HockeyTable table
 	{ get{ return mTable;}}
 	
+	//the max goal
+	public static int maxGoal
+	{ get{ return mCurrent.mMaxGoal;}}
 	#endregion
 	
 	#region GAME LOADING
@@ -76,8 +97,12 @@ public class GameplayScene : Scene {
 	
 	#region CALLBACKS
 	
+	//callback when this was initialize
 	protected override void Awake ()
 	{
+		mCurrent = this;
+		mTable = (HockeyTable)FindObjectOfType( typeof(HockeyTable));
+		
 		base.Awake ();
 		if( mOwnerInfo == null )
 		{
@@ -90,6 +115,7 @@ public class GameplayScene : Scene {
 		opponentPlayer.info = mOpponentInfo;
 	}
 	
+	//callback when the game started
 	public virtual void OnGameStart()
 	{
 		mOwnerPlayer.OnGameStart();
@@ -97,6 +123,7 @@ public class GameplayScene : Scene {
 		mTable.OnGameStart();
 	}
 	
+	//callback when intro started
 	public virtual void OnIntroStart()
 	{
 		mOwnerPlayer.OnIntroStart();
@@ -104,6 +131,7 @@ public class GameplayScene : Scene {
 		mTable.OnIntroStart();
 	}
 	
+	//callbakc when intro end
 	public virtual void OnIntroEnd()
 	{
 		mOwnerPlayer.OnIntroEnd();
@@ -111,20 +139,40 @@ public class GameplayScene : Scene {
 		mTable.OnIntroEnd();
 	}
 	
+	//callback when a player goal
+	//@param: the player who goaled
 	public virtual void OnPlayerGoalStart( PlayerIngame pGoalee)
 	{
+		//update current game score
+		if( pGoalee == mOwnerPlayer )
+			mGameinfo.ownerScore ++;
+		else
+			mGameinfo.opponentScore++;
+		
+		Debug.Log( "Player GOAL: " + pGoalee.name);
 		mOwnerPlayer.OnPlayerGoalStart( pGoalee);
 		mOpponentPlayer.OnPlayerGoalStart( pGoalee);
 		mTable.OnPlayerGoalStart( pGoalee);
+		
+		//end short after few seconds
+		Invoke( "OnPlayerGoalEnd", 2);
 	}
 	
-	public virtual void OnPlayerGoalEnd()
+	//callback when ending the goal
+	protected virtual void OnPlayerGoalEnd()
 	{
 		mOwnerPlayer.OnPlayerGoalEnd();
 		mOpponentPlayer.OnPlayerGoalEnd();
 		mTable.OnPlayerGoalEnd();
+		
+		//test if end game
+		if( mGameinfo.ownerScore >= mMaxGoal )
+			OnGameEnd( mOwnerPlayer);
+		else if( mGameinfo.opponentScore >= mMaxGoal )
+			OnGameEnd( mOpponentPlayer);
 	}
 	
+	//callback when the game was pause
 	protected override void OnPause (bool pWillPause)
 	{
 		mOwnerPlayer.OnPause( pWillPause);
@@ -132,6 +180,7 @@ public class GameplayScene : Scene {
 		mTable.OnPause( pWillPause);
 	}
 	
+	//callback when the game was reset
 	public virtual void Reset()
 	{
 		mOwnerPlayer.Reset();
@@ -140,19 +189,24 @@ public class GameplayScene : Scene {
 		OnGameStart();
 	}
 	
+	//callback when game ended
+	//@param: the player who winned
 	public virtual void OnGameEnd( PlayerIngame pWinner)
 	{
 		mOwnerPlayer.OnGameEnd( pWinner);
 		mOpponentPlayer.OnGameEnd( pWinner);
 		mTable.OnGameEnd( pWinner);
+		pause = true;
+		Debug.Log( "GameOver");
 	}
 	
+	//callback for updating
 	public override void OnUpdate (float pCurrentTime)
 	{
 		base.OnUpdate (pCurrentTime);
 		mOwnerPlayer.OnUpdate( pCurrentTime);
 		mOpponentPlayer.OnUpdate( pCurrentTime);
-		mTable.OnUpdate( pCurrentTime);
+		//mTable.OnUpdate( pCurrentTime);
 	} 
 	#endregion
 }

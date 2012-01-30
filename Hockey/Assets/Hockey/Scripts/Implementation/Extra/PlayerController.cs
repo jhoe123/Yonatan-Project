@@ -1,7 +1,13 @@
 using UnityEngine;
 using System.Collections;
 
-[RequireComponent( typeof(PlayerIngame))]
+/*
+ * PlayerController.cs
+ * Jhoemar Pagao (c) 2011
+ * jhoemar.pagao@gmail.com
+ * 
+ * Use to control the assigned player
+ * */
 public class PlayerController : GUIObject, GUIPressable {
 	
 	[SerializeField]
@@ -10,20 +16,31 @@ public class PlayerController : GUIObject, GUIPressable {
 	{ get{ return mPlayer;}}
 	
 	Transform mGuardTrans;
+	Rigidbody mGuardRigid;
 	Camera mWordCam;
 	float mY;
+	float mZ;
+	int mTableLayer;
 	
+	//initialization
 	protected override void Start ()
 	{
 		mGuardTrans = player.ballGuard.transform;
-		mWordCam = GameController.mMainCamera;
+		mWordCam = Camera.mainCamera;
+		base.Start();
+		mY = mGuardTrans.position.y;
+		mZ = mGuardTrans.position.z;
+		mGuardRigid = mGuardTrans.rigidbody;
+		mTableLayer = 1 << (LayerMask.NameToLayer("Table") );
 	}
 	
+	//callback when start pressing 
 	public void OnPush (Vector3 pCursorPosition, int pCursorIndex)
 	{
-		mGuardTrans.position = mWordCam.ScreenPointToRay( pCursorPosition).GetPoint( mY);
+		ScreenToWorld();
 	}
 	
+	//callback when release pressing
 	public void OnRelease (Vector3 pCursorPosition, int pCursorIndex)
 	{}
 	
@@ -37,10 +54,21 @@ public class PlayerController : GUIObject, GUIPressable {
 		}
 	}
 	
+	//move the player guard based on the input
+	RaycastHit mResult;
+	void ScreenToWorld()
+	{
+		Physics.Raycast( mWordCam.ScreenPointToRay( GameController.mCursorScreentPoint), out mResult, Mathf.Infinity, mTableLayer);
+		mClipPosition = mResult.point;
+		mClipPosition.y = mY;
+		mGuardRigid.MovePosition( mClipPosition);
+	}
+	
+	Vector3 mClipPosition;
 	public override void OnUpdate (float mCurrentTime)
 	{
 		base.OnUpdate (mCurrentTime);
 		if( mIsPressed )
-			mGuardTrans.position = mWordCam.ScreenPointToRay( GameController.mCursorScreentPoint).GetPoint( mY);
+			ScreenToWorld();
 	}
 }

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
+[AddComponentMenu("2D Toolkit/Demo/tk2dDemoAnimController")]
 public class tk2dDemoAnimController : MonoBehaviour 
 {
 	tk2dAnimatedSprite animSprite;

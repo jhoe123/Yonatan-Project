@@ -9,40 +9,27 @@ class tk2dSpriteAnimationEditor : Editor
 	Vector2 scrollPosition = Vector3.zero;
 	
 	bool initialized = false;
-	tk2dSpriteCollectionData[] allSpriteCollectionData = null;
 	string[] allSpriteCollectionNames = null;
-	List<string[]> allSpriteCollectionSpriteNames = null;
-	
-	bool horizontalAnimDisplay = true;
+	tk2dSpriteCollectionIndex[] spriteCollectionIndex = null;
 	
 	void InitializeInspector()
 	{
 		if (!initialized)
 		{
-			allSpriteCollectionData = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionData();
-			if (allSpriteCollectionData != null)
+			var index = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionIndex();
+			if (index != null)
 			{
-				allSpriteCollectionNames = new string[allSpriteCollectionData.Length];
-				allSpriteCollectionSpriteNames = new List<string[]>();
+				allSpriteCollectionNames = new string[index.Length];
 				
-				for (int i = 0; i < allSpriteCollectionData.Length; ++i)
+				for (int i = 0; i < index.Length; ++i)
 				{
-					allSpriteCollectionNames[i] = allSpriteCollectionData[i].spriteCollectionName;
-					string[] spriteNames = new string[allSpriteCollectionData[i].spriteDefinitions.Length];
-					
-					for (int j = 0; j < allSpriteCollectionData[i].spriteDefinitions.Length; ++j)
-					{
-						spriteNames[j] = allSpriteCollectionData[i].spriteDefinitions[j].name;
-					}
-					
-					allSpriteCollectionSpriteNames.Add(spriteNames);
+					allSpriteCollectionNames[i] = index[i].name;
 				}
 			}
+			spriteCollectionIndex = index;
 			
 			initialized = true;
 		}
-		
-		horizontalAnimDisplay = EditorPrefs.GetBool("tk2d_horizontalAnimDisplay", true);
 	}
 	
 	void OnDestroy()
@@ -50,21 +37,35 @@ class tk2dSpriteAnimationEditor : Editor
 		tk2dSpriteThumbnailCache.ReleaseSpriteThumbnailCache();
 	}
 	
+	Dictionary<tk2dSpriteCollectionData, int> indexLookup = new Dictionary<tk2dSpriteCollectionData, int>();
 	int GetSpriteCollectionId(tk2dSpriteCollectionData data)
 	{
-		for (int i = 0; i < allSpriteCollectionData.Length; ++i)
+		if (indexLookup.ContainsKey(data))
+			return indexLookup[data];
+		
+		var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(data));	
+		for (int i = 0; i < spriteCollectionIndex.Length; ++i)
 		{
-			if (allSpriteCollectionData[i] == data)
+			if (spriteCollectionIndex[i].spriteCollectionDataGUID == guid)
+			{
+				indexLookup[data] = i;
 				return i;
+			}
 		}
 		return 0; // default
+	}
+	
+	tk2dSpriteCollectionData GetSpriteCollection(int index)
+	{
+		GameObject scgo = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(spriteCollectionIndex[index].spriteCollectionDataGUID), typeof(GameObject)) as GameObject;
+		return scgo.GetComponent<tk2dSpriteCollectionData>();
 	}
 	
     public override void OnInspectorGUI()
     {
 		InitializeInspector();
 		
-		if (allSpriteCollectionData == null || allSpriteCollectionNames == null || allSpriteCollectionSpriteNames == null)
+		if (spriteCollectionIndex == null || allSpriteCollectionNames == null)
 		{
 			GUILayout.Label("data not found");
 			if (GUILayout.Button("Refresh"))
@@ -88,7 +89,12 @@ class tk2dSpriteAnimationEditor : Editor
 			{
 				anim.clips = new tk2dSpriteAnimationClip[1];
 				anim.clips[0] = new tk2dSpriteAnimationClip();
-				anim.clips[0].name = "New Animation 0";
+				anim.clips[0].name = "New Clip 0";
+				anim.clips[0].frames = new tk2dSpriteAnimationFrame[1];
+				
+				anim.clips[0].frames[0] = new tk2dSpriteAnimationFrame();
+				anim.clips[0].frames[0].spriteCollection = GetSpriteCollection(0);
+				anim.clips[0].frames[0].spriteId = 0;
 			}
 		}
 		else // has anim clips
@@ -106,6 +112,8 @@ class tk2dSpriteAnimationEditor : Editor
 			// Add new clip
 			if (GUILayout.Button("+", GUILayout.MaxWidth(28), GUILayout.MaxHeight(14)))
 			{
+				int previousClipId = currentClip;
+				
 				// try to find an empty slot
 				currentClip = -1;
 				for (int i = 0; i < anim.clips.Length; ++i)
@@ -127,7 +135,7 @@ class tk2dSpriteAnimationEditor : Editor
 					anim.clips = clips;
 				}
 				
-				string uniqueName = "New Animation ";
+				string uniqueName = "New Clip ";
 				int uniqueId = 0;
 				for (int i = 0; i < anim.clips.Length; ++i)
 				{
@@ -146,8 +154,23 @@ class tk2dSpriteAnimationEditor : Editor
 				anim.clips[currentClip].wrapMode = tk2dSpriteAnimationClip.WrapMode.Loop;
 				anim.clips[currentClip].frames = new tk2dSpriteAnimationFrame[1];
 				tk2dSpriteAnimationFrame frame = new tk2dSpriteAnimationFrame();
-				frame.spriteCollection = allSpriteCollectionData[0];
-				frame.spriteId = 0;
+				if (previousClipId < anim.clips.Length
+				    && anim.clips[previousClipId] != null 
+				    && anim.clips[previousClipId].frames != null
+				    && anim.clips[previousClipId].frames.Length != 0
+				    && anim.clips[previousClipId].frames[anim.clips[previousClipId].frames.Length - 1] != null
+				    && anim.clips[previousClipId].frames[anim.clips[previousClipId].frames.Length - 1].spriteCollection != null)
+				{
+					var previousClip = anim.clips[previousClipId];
+					var lastFrame = previousClip.frames[previousClip.frames.Length - 1];
+					frame.spriteCollection = lastFrame.spriteCollection;
+					frame.spriteId = lastFrame.spriteId;
+				}
+				else
+				{
+					frame.spriteCollection = GetSpriteCollection(0);
+					frame.spriteId = 0;
+				}
 				anim.clips[currentClip].frames[0] = frame;
 				
 				GUI.changed = true;
@@ -249,7 +272,7 @@ class tk2dSpriteAnimationEditor : Editor
 					for (int i = 0; i < frames.Length; ++i)
 					{
 						frames[i] = new tk2dSpriteAnimationFrame();
-						frames[i].spriteCollection = allSpriteCollectionData[0];
+						frames[i].spriteCollection = GetSpriteCollection(0);
 						frames[i].spriteId = 0;
 					}
 				}
@@ -290,10 +313,9 @@ class tk2dSpriteAnimationEditor : Editor
 				AutoFill(clip);
 			}
 			
-			if (GUILayout.Button(horizontalAnimDisplay?"H":"V", GUILayout.MaxWidth(24)))
+			if (GUILayout.Button(tk2dPreferences.inst.horizontalAnimDisplay?"H":"V", GUILayout.MaxWidth(24)))
 			{
-				horizontalAnimDisplay = !horizontalAnimDisplay;
-				EditorPrefs.SetBool("tk2d_horizontalAnimDisplay", horizontalAnimDisplay);
+				tk2dPreferences.inst.horizontalAnimDisplay = !tk2dPreferences.inst.horizontalAnimDisplay;
 				Repaint();
 			}
 			EditorGUILayout.EndHorizontal();
@@ -345,7 +367,7 @@ class tk2dSpriteAnimationEditor : Editor
 			// Draw frames
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.Space(); EditorGUILayout.Space(); EditorGUILayout.Space(); EditorGUILayout.Space();
-			if (horizontalAnimDisplay)
+			if (tk2dPreferences.inst.horizontalAnimDisplay)
 			{
 				scrollPosition = EditorGUILayout.BeginScrollView(scrollPosition, GUILayout.Height(144.0f));
 				EditorGUILayout.BeginHorizontal();
@@ -363,12 +385,11 @@ class tk2dSpriteAnimationEditor : Editor
 						int newSpriteCollectionId = EditorGUILayout.Popup(currSpriteCollectionId, allSpriteCollectionNames);
 						if (newSpriteCollectionId != currSpriteCollectionId)
 						{
-							clip.frames[i].spriteCollection = allSpriteCollectionData[newSpriteCollectionId];
+							clip.frames[i].spriteCollection = GetSpriteCollection(newSpriteCollectionId);
 							clip.frames[i].spriteId = 0;
 						}
 						
-						string[] spriteNames = allSpriteCollectionSpriteNames[newSpriteCollectionId];
-						clip.frames[i].spriteId = EditorGUILayout.Popup(clip.frames[i].spriteId, spriteNames);
+						clip.frames[i].spriteId = tk2dEditorUtility.SpriteSelectorPopup(null, clip.frames[i].spriteId, clip.frames[i].spriteCollection);
 						
 						clip.frames[i].triggerEvent = EditorGUILayout.Toggle("Trigger", clip.frames[i].triggerEvent);
 						if (clip.frames[i].triggerEvent)
@@ -406,12 +427,11 @@ class tk2dSpriteAnimationEditor : Editor
 						int newSpriteCollectionId = EditorGUILayout.Popup(currSpriteCollectionId, allSpriteCollectionNames);
 						if (newSpriteCollectionId != currSpriteCollectionId)
 						{
-							clip.frames[i].spriteCollection = allSpriteCollectionData[newSpriteCollectionId];
+							clip.frames[i].spriteCollection = GetSpriteCollection(newSpriteCollectionId);
 							clip.frames[i].spriteId = 0;
 						}
 						
-						string[] spriteNames = allSpriteCollectionSpriteNames[newSpriteCollectionId];
-						clip.frames[i].spriteId = EditorGUILayout.Popup(clip.frames[i].spriteId, spriteNames);
+						clip.frames[i].spriteId = tk2dEditorUtility.SpriteSelectorPopup(null, clip.frames[i].spriteId, clip.frames[i].spriteCollection);
 						
 						clip.frames[i].triggerEvent = EditorGUILayout.Toggle("Trigger", clip.frames[i].triggerEvent);
 						if (clip.frames[i].triggerEvent)
@@ -516,14 +536,17 @@ class tk2dSpriteAnimationEditor : Editor
 	
 	void DrawSpritePreview(int collectionId, int spriteId)
 	{
-		if (allSpriteCollectionData[collectionId].version < 1)
+		if (!tk2dPreferences.inst.displayTextureThumbs)
+			return;
+		
+		if (spriteCollectionIndex[collectionId].version < 1)
 		{
 			GUILayout.Label("No thumbnail data.\nPlease rebuild Sprite Collection.");
 		}
 		else		
 		{
 			Rect r = GUILayoutUtility.GetRect(64, 64, GUILayout.MaxWidth(64), GUILayout.MaxHeight(64));
-			Texture2D tex = tk2dSpriteThumbnailCache.GetThumbnailTexture(allSpriteCollectionData[collectionId], spriteId);
+			Texture2D tex = tk2dSpriteThumbnailCache.GetThumbnailTexture(GetSpriteCollection(collectionId), spriteId);
 			if (tex)
 			{
 				if (tex.width < r.width && tex.height < r.height)
@@ -556,8 +579,13 @@ class tk2dSpriteAnimationEditor : Editor
             go.AddComponent<tk2dSpriteAnimation>();
             go.active = false;
 
-            Object p = EditorUtility.CreateEmptyPrefab(path);
+#if (UNITY_3_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_4)
+			Object p = EditorUtility.CreateEmptyPrefab(path);
             EditorUtility.ReplacePrefab(go, p, ReplacePrefabOptions.ConnectToPrefab);
+#else
+			Object p = PrefabUtility.CreateEmptyPrefab(path);
+            PrefabUtility.ReplacePrefab(go, p, ReplacePrefabOptions.ConnectToPrefab);
+#endif
             GameObject.DestroyImmediate(go);
 			
 			tk2dEditorUtility.GetOrCreateIndex().AddSpriteAnimation(AssetDatabase.LoadAssetAtPath(path, typeof(tk2dSpriteAnimation)) as tk2dSpriteAnimation);

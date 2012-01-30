@@ -8,6 +8,12 @@ using System.IO;
 [CustomEditor(typeof(tk2dFont))]
 public class tk2dFontEditor : Editor 
 {
+	public Shader GetShader(bool gradient)
+	{
+		if (gradient) return Shader.Find("tk2d/Blend2TexVertexColor");
+		else return Shader.Find("tk2d/BlendVertexColor");
+	}
+	
 	public override void OnInspectorGUI()
 	{
 		tk2dFont gen = (tk2dFont)target;
@@ -17,10 +23,17 @@ public class tk2dFontEditor : Editor
 
 		if (GUILayout.Button("Commit..."))
 		{
-			if (gen.bmFont == null || gen.texture == null || gen.material == null)
+			if (gen.bmFont == null || gen.texture == null)
 			{
-				EditorUtility.DisplayDialog("BMFont", "Need an bmFont, texture and material bound to work", "Ok");
+				EditorUtility.DisplayDialog("BMFont", "Need an bmFont and texture bound to work", "Ok");
 				return;
+			}
+			
+			if (gen.material == null)
+			{
+				gen.material = new Material(GetShader(gen.gradientTexture != null));
+				string materialPath = AssetDatabase.GetAssetPath(gen).Replace(".prefab", "material.mat");
+				AssetDatabase.CreateAsset(gen.material, materialPath);
 			}
 			
 			if (gen.data == null)
@@ -31,8 +44,13 @@ public class tk2dFontEditor : Editor
 				go.AddComponent<tk2dFontData>();
 				go.active = false;
 				
+#if (UNITY_3_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_4)
 				Object p = EditorUtility.CreateEmptyPrefab(bmFontPath);
 				EditorUtility.ReplacePrefab(go, p);
+#else
+				Object p = PrefabUtility.CreateEmptyPrefab(bmFontPath);
+				PrefabUtility.ReplacePrefab(go, p);
+#endif
 				GameObject.DestroyImmediate(go);
 				AssetDatabase.SaveAssets();
 				
@@ -40,14 +58,37 @@ public class tk2dFontEditor : Editor
 			}
 			
 			ParseBMFont(AssetDatabase.GetAssetPath(gen.bmFont), gen.data, gen);
+
+			if (gen.manageMaterial)
+			{
+				Shader s = GetShader(gen.gradientTexture != null);
+				if (gen.material.shader != s)
+				{
+					gen.material.shader = s;
+					EditorUtility.SetDirty(gen.material);
+				}
+				if (gen.material.mainTexture != gen.texture)
+				{
+					gen.material.mainTexture = gen.texture;
+					EditorUtility.SetDirty(gen.material);
+				}
+				if (gen.gradientTexture != null && gen.gradientTexture != gen.material.GetTexture("_GradientTex"))
+				{
+					gen.material.SetTexture("_GradientTex", gen.gradientTexture);
+					EditorUtility.SetDirty(gen.material);
+				}
+			}
 			
 			gen.data.material = gen.material;
-			
+			gen.data.textureGradients = gen.gradientTexture != null;
+			gen.data.gradientCount = gen.gradientCount;
+			gen.data.gradientTexture = gen.gradientTexture;
+		
             // Rebuild assets already present in the scene
             tk2dTextMesh[] sprs = Resources.FindObjectsOfTypeAll(typeof(tk2dTextMesh)) as tk2dTextMesh[];
             foreach (tk2dTextMesh spr in sprs)
             {
-                spr.Init();
+                spr.Init(true);
             }
 			
 			EditorUtility.SetDirty(gen);
@@ -209,7 +250,14 @@ public class tk2dFontEditor : Editor
 
         bmFont.lineHeight = lineHeight * scale;
 		
-		tk2dFontChar[] chars = new tk2dFontChar[source.numCharacters];
+		// Get largest index
+		int numCharacters = 0;
+		foreach (var theChar in fontInfo.chars)
+		{
+			if (theChar.id > numCharacters) numCharacters = theChar.id;
+		}
+		
+		tk2dFontChar[] chars = new tk2dFontChar[numCharacters];
 		int minChar = 65536;
 		int maxCharWithinBounds = 0;
 		int numLocalChars = 0;
@@ -224,7 +272,7 @@ public class tk2dFontEditor : Editor
             int height = theChar.height;
             int xoffset = theChar.xoffset;
             int yoffset = theChar.yoffset;
-            int xadvance = theChar.xadvance;
+            int xadvance = theChar.xadvance + source.charPadX;
 
             // precompute required data
             float px = xoffset * scale;
@@ -245,8 +293,26 @@ public class tk2dFontEditor : Editor
 			}
             thisChar.advance = xadvance * scale;
 			largestWidth = Mathf.Max(thisChar.advance, largestWidth);
+			
+			// Needs gradient data
+			if (source.gradientTexture != null)
+			{
+				// build it up assuming the first gradient
+				float x0 = (float)(0.0f / source.gradientCount);
+				float x1 = (float)(1.0f / source.gradientCount);
+				float y0 = 1.0f;
+				float y1 = 0.0f;
 
-			if (id < source.numCharacters)
+				// align to glyph if necessary
+				
+				thisChar.gradientUv = new Vector2[4];
+				thisChar.gradientUv[0] = new Vector2(x0, y0);
+				thisChar.gradientUv[1] = new Vector2(x1, y0);
+				thisChar.gradientUv[2] = new Vector2(x0, y1);
+				thisChar.gradientUv[3] = new Vector2(x1, y1);
+			}
+
+			if (id < numCharacters)
 			{
 				maxCharWithinBounds = (id > maxCharWithinBounds) ? id : maxCharWithinBounds;
 				minChar = (id < minChar) ? id : minChar;
@@ -265,14 +331,16 @@ public class tk2dFontEditor : Editor
             }
         }
 		
+		// share null char, same pointer
+		var nullChar = new tk2dFontChar();
 		bmFont.largestWidth = largestWidth;
-		bmFont.chars = new tk2dFontChar[source.numCharacters];
-		for (int i = 0; i < source.numCharacters; ++i)
+		bmFont.chars = new tk2dFontChar[numCharacters];
+		for (int i = 0; i < numCharacters; ++i)
 		{
 			bmFont.chars[i] = chars[i];
 			if (bmFont.chars[i] == null)
 			{
-				bmFont.chars[i] = new tk2dFontChar(); // zero everything, null char
+				bmFont.chars[i] = nullChar; // zero everything, null char
 			}
 		}
 		
@@ -310,12 +378,17 @@ public class tk2dFontEditor : Editor
 		if (path != null)
 		{
 			GameObject go = new GameObject();
-			go.AddComponent<tk2dFont>();
+			tk2dFont font = go.AddComponent<tk2dFont>();
+			font.manageMaterial = true;
 			go.active = false;
 
+#if (UNITY_3_0 || UNITY_3_1 || UNITY_3_2 || UNITY_3_3 || UNITY_3_4 || UNITY_3_4)
 			Object p = EditorUtility.CreateEmptyPrefab(path);
 			EditorUtility.ReplacePrefab(go, p, ReplacePrefabOptions.ConnectToPrefab);
-
+#else
+			Object p = PrefabUtility.CreateEmptyPrefab(path);
+			PrefabUtility.ReplacePrefab(go, p, ReplacePrefabOptions.ConnectToPrefab);
+#endif
 			GameObject.DestroyImmediate(go);
 			
 			tk2dEditorUtility.GetOrCreateIndex().AddFont(AssetDatabase.LoadAssetAtPath(path, typeof(tk2dFont)) as tk2dFont);

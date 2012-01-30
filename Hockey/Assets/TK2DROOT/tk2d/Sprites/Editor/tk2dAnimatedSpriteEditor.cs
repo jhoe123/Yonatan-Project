@@ -112,6 +112,12 @@ class tk2dAnimatedSpriteEditor : tk2dSpriteEditor
 
 			// Play automatically
 			sprite.playAutomatically = EditorGUILayout.Toggle("Play automatically", sprite.playAutomatically);
+			bool oldCreateCollider = sprite.createCollider;
+			sprite.createCollider = EditorGUILayout.Toggle("Create collider", sprite.createCollider);
+			if (oldCreateCollider != sprite.createCollider)
+			{
+				sprite.EditMode__CreateCollider();
+			}
 			
 			if (GUI.changed)
 			{
@@ -136,10 +142,16 @@ class tk2dAnimatedSpriteEditor : tk2dSpriteEditor
 		
 		if (sprColl == null)
 		{
-			tk2dSpriteCollectionData[] spriteCollections = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionData();
+			tk2dSpriteCollectionIndex[] spriteCollections = tk2dEditorUtility.GetOrCreateIndex().GetSpriteCollectionIndex();
 			foreach (var v in spriteCollections)
 			{
-				sprColl = v;
+				GameObject scgo = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(v.spriteCollectionDataGUID), typeof(GameObject)) as GameObject;
+				var sc = scgo.GetComponent<tk2dSpriteCollectionData>();
+				if (sc != null && sc.spriteDefinitions != null && sc.spriteDefinitions.Length > 0)
+				{
+					sprColl = sc;
+					break;
+				}
 			}
 
 			if (sprColl == null)
@@ -153,15 +165,22 @@ class tk2dAnimatedSpriteEditor : tk2dSpriteEditor
 		tk2dSpriteAnimation anim = null;
 		foreach (var a in anims)
 		{
-			if (a != null && a.clips.Length > 0)
+			if (a != null && a.clips != null && a.clips.Length > 0)
 			{
 				anim = a;
 				break;
 			}
 		}
+		
 		if (anim == null)
 		{
 			EditorUtility.DisplayDialog("Create Animated Sprite", "Unable to create animated sprite as no SpriteAnimations have been found.", "Ok");
+			return;
+		}
+		
+		if (anim.clips[0].frames.Length == 0 || anim.clips[0].frames[0].spriteCollection == null)
+		{
+			EditorUtility.DisplayDialog("Create Animated Sprite", "Invalid SpriteAnimation has been found.", "Ok");
 			return;
 		}
 
