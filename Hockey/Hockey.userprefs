@@ -1,34 +1,24 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Hockey/Scripts/Implementation/Extra/PlayerController.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Hockey/Scripts/Implementation/Scenes/GameplayNetwork.cs">
     <Files>
+      <File FileName="Assets/Hockey/Scripts/Implementation/Extra/PlayerController.cs" Line="71" Column="28" />
       <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayScene.cs" Line="200" Column="26" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Utilities/GameHelpers.cs" Line="8" Column="2" />
       <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayLocal.cs" Line="5" Column="2" />
       <File FileName="Assets/Hockey/Scripts/Implementation/Objects/HockeyTable.cs" Line="86" Column="34" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/Ball.cs" Line="12" Column="72" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/Ball.cs" Line="5" Column="2" />
       <File FileName="Assets/Hockey/Scripts/Implementation/Objects/PlayerIngame.cs" Line="76" Column="33" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Extra/PlayerController.cs" Line="57" Column="44" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Extra/BallCollisionEffect.cs" Line="6" Column="2" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Utilities/GameHelpers.cs" Line="76" Column="59" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayNetwork.cs" Line="70" Column="16" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
         <State expanded="True">
-          <Node name="Assembly-CSharp" expanded="True">
-            <Node name="Assets" expanded="True">
-              <Node name="Hockey" expanded="True">
-                <Node name="Scripts" expanded="True">
-                  <Node name="Implementation" expanded="True">
-                    <Node name="Extra" expanded="True">
-                      <Node name="PlayerController.cs" selected="True" />
-                    </Node>
-                    <Node name="Objects" expanded="True" />
-                    <Node name="Scenes" expanded="True" />
-                    <Node name="Utilities" expanded="True" />
-                  </Node>
-                </Node>
-              </Node>
-            </Node>
-          </Node>
+          <Node name="Assembly-CSharp" expanded="True" />
+          <Node name="Assembly-CSharp-Editor" expanded="True" />
+          <Node name="Assembly-CSharp-firstpass" expanded="True" />
+          <Node name="Assembly-UnityScript" expanded="True" />
         </State>
       </Pad>
     </Pads>

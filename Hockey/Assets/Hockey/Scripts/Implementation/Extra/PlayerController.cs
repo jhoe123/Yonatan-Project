@@ -18,9 +18,11 @@ public class PlayerController : GUIObject, GUIPressable {
 	Transform mGuardTrans;
 	Rigidbody mGuardRigid;
 	Camera mWordCam;
-	float mY;
-	float mZ;
-	int mTableLayer;
+	float mY;							
+	int mTableLayer;							//the layer tag
+	
+	float mMidLimit = 7.5f;						//the limit
+	bool mIsBottomPlayer = false;
 	
 	//initialization
 	protected override void Start ()
@@ -29,9 +31,13 @@ public class PlayerController : GUIObject, GUIPressable {
 		mWordCam = Camera.mainCamera;
 		base.Start();
 		mY = mGuardTrans.position.y;
-		mZ = mGuardTrans.position.z;
 		mGuardRigid = mGuardTrans.rigidbody;
 		mTableLayer = 1 << (LayerMask.NameToLayer("Table") );
+		
+		if( GameplayScene.bottomPlayer == mPlayer)
+			mIsBottomPlayer = true;
+		else
+			mIsBottomPlayer = false;
 	}
 	
 	//callback when start pressing 
@@ -61,6 +67,18 @@ public class PlayerController : GUIObject, GUIPressable {
 		Physics.Raycast( mWordCam.ScreenPointToRay( GameController.mCursorScreentPoint), out mResult, Mathf.Infinity, mTableLayer);
 		mClipPosition = mResult.point;
 		mClipPosition.y = mY;
+		
+		//limit the player guard.
+		if( mIsBottomPlayer)
+		{
+			if( mClipPosition.z > mMidLimit )
+				mClipPosition.z = mMidLimit;
+		}else
+		{
+			if( mClipPosition.z < mMidLimit )
+				mClipPosition.z = mMidLimit;
+		}
+		   
 		mGuardRigid.MovePosition( mClipPosition);
 	}
 	
