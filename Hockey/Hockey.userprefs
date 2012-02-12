@@ -1,16 +1,17 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Hockey/Scripts/Implementation/Networking/PlayOnline.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Hockey/Scripts/Implementation/Utilities/GameHelpers.cs">
     <Files>
       <File FileName="../../../../Shared/project/Dreamlords/RobotRiots/UnityProject/Assets/RiotRobots/Scripts/Implementations/Entities/player_controllable.cs" Line="1" Column="1" />
-      <File FileName="../../../../Shared/project/Dreamlords/RobotRiots/UnityProject/Assets/RiotRobots/Scripts/Implementations/Controls/Menu/ListRenderer.cs" Line="16" Column="1" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayNetwork.cs" Line="44" Column="3" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Extra/PlayerController.cs" Line="36" Column="21" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Extra/BallCollisionEffect.cs" Line="6" Column="2" />
       <File FileName="Assets/Hockey/Scripts/Implementation/Networking/JoiningStatusListener.cs" Line="1" Column="1" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Networking/PlayOnline.cs" Line="38" Column="9" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayScene.cs" Line="81" Column="3" />
-      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/MainmenuScene.cs" Line="8" Column="1" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Utilities/GameHelpers.cs" Line="115" Column="4" />
+      <File FileName="Assets/Hockey/Scripts/Interfaces/Singleton/GUIController.cs" Line="1" Column="1" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/PlayerIngameNetwork.cs" Line="47" Column="43" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Scenes/GameplayNetwork.cs" Line="25" Column="30" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Extra/PlayerController.cs" Line="30" Column="24" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/PlayerIngame.cs" Line="15" Column="29" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/Ball.cs" Line="31" Column="4" />
+      <File FileName="Assets/Hockey/Scripts/Implementation/Objects/HockeyTable.cs" Line="1" Column="1" />
     </Files>
     <Pads>
       <Pad Id="ProjectPad">
@@ -20,10 +21,16 @@
               <Node name="Hockey" expanded="True">
                 <Node name="Scripts" expanded="True">
                   <Node name="Implementation" expanded="True">
-                    <Node name="Networking" expanded="True">
-                      <Node name="PlayOnline.cs" selected="True" />
-                    </Node>
+                    <Node name="Extra" expanded="True" />
+                    <Node name="Networking" expanded="True" />
+                    <Node name="Objects" expanded="True" />
                     <Node name="Scenes" expanded="True" />
+                    <Node name="Utilities" expanded="True">
+                      <Node name="GameHelpers.cs" selected="True" />
+                    </Node>
+                  </Node>
+                  <Node name="Interfaces" expanded="True">
+                    <Node name="Singleton" expanded="True" />
                   </Node>
                 </Node>
               </Node>
