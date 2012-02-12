@@ -17,7 +17,7 @@ public class GUIButton1 : GUIObject, GUIPressable, GUIFocusable {
 	{
 		base.Awake ();
 		mMat = renderer.material;
-		mOriginalColor = mMat.GetColor( mTargetColor);
+		mOriginalColor =(mTargetColor != "")? mMat.GetColor( mTargetColor): Color.white;
 		
 #if !UNITY_TOUCH
 		GameController.mKeyboardEvent +=OnKeyEvent;

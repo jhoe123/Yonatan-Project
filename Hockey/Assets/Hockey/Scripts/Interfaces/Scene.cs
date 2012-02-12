@@ -22,6 +22,11 @@ public class Scene : SObject {
 		mElapsedTime = Time.time;
 	}
 	
+	protected virtual void OnDestroy()
+	{
+		mCurrent = null;
+	}
+	
 	bool mIsPause = false;
 	//pause the active scene
 	public static bool pause

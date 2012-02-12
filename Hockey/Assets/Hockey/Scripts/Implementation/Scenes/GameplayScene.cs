@@ -11,6 +11,11 @@ using System.Collections;
 public class GameplayScene : Scene {
 	
 	public static GameplayScene mCurrent;								//the current instance of the game
+	PlayerController mPlayerController;
+	
+	//guis
+	public GameObject mTopGUI_Scorer;
+	public GameObject mBotGUI_Scorer;
 	
 	[SerializeField]
 	protected int mMaxGoal;
@@ -26,10 +31,20 @@ public class GameplayScene : Scene {
 	
 	#region PROPERTIES
 	
-	//the player owner/who host this game
+	//the current player who is controlling this device
+	protected static PlayerIngame mCurrentPlayer;
+	public static PlayerIngame currentPlayer
+	{ get{ return mCurrentPlayer;}}
+	
+	//the player host of this game
 	protected static PlayerIngame mOwnerPlayer;
 	public static PlayerIngame ownerPlayer
 	{ get{return mOwnerPlayer;}}
+	
+	//the player opponent of the host
+	protected static PlayerIngame mOpponentPlayer;
+	public static PlayerIngame opponentPlayer
+	{ get{return mOpponentPlayer;}}
 	
 	//the player who occupied the bottom
 	public static PlayerIngame bottomPlayer
@@ -39,20 +54,16 @@ public class GameplayScene : Scene {
 	public static PlayerIngame topPlayer
 	{ get{ return mCurrent.mPlayer2;}}
 	
-	//the player opponent
-	protected static PlayerIngame mOpponentPlayer;
-	public static PlayerIngame opponentPlayer
-	{ get{return mOpponentPlayer;}}
-	
 	//the current game information ongoing
 	protected static GameInfo mGameinfo;
 	public static GameInfo gameInfo
 	{ get{ return mGameinfo;}}
 	
 	//the hockey table
-	static HockeyTable mTable;
+	[SerializeField]
+	HockeyTable mTable;
 	public static HockeyTable table
-	{ get{ return mTable;}}
+	{ get{ return mCurrent.mTable;}}
 	
 	//the max goal
 	public static int maxGoal
@@ -101,9 +112,12 @@ public class GameplayScene : Scene {
 	protected override void Awake ()
 	{
 		mCurrent = this;
-		mTable = (HockeyTable)FindObjectOfType( typeof(HockeyTable));
 		
 		base.Awake ();
+		
+		if( mCurrentPlayer == null)
+			mCurrentPlayer = mOwnerPlayer;
+		
 		if( mOwnerInfo == null )
 		{
 			mOwnerInfo = GameHelpers.GetLocalPlayerInfo();
@@ -113,6 +127,8 @@ public class GameplayScene : Scene {
 		mGameinfo = new GameInfo( mOwnerInfo, mOpponentInfo, 0, 0);
 		ownerPlayer.info = mOwnerInfo;
 		opponentPlayer.info = mOpponentInfo;
+		
+		mPlayerController = (PlayerController)FindObjectOfType( typeof(PlayerController));
 	}
 	
 	//callback when the game started
@@ -206,7 +222,15 @@ public class GameplayScene : Scene {
 		base.OnUpdate (pCurrentTime);
 		mOwnerPlayer.OnUpdate( pCurrentTime);
 		mOpponentPlayer.OnUpdate( pCurrentTime);
+		mPlayerController.OnUpdate( pCurrentTime);
 		//mTable.OnUpdate( pCurrentTime);
 	} 
 	#endregion
+	
+	
+	protected override void OnDestroy ()
+	{
+		base.OnDestroy ();
+		mCurrent = null;
+	}
 }

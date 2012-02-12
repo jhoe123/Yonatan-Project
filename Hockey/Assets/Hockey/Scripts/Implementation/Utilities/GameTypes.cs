@@ -4,6 +4,7 @@ using System.Collections;
 /*
  * Holds player information
  * */
+[System.Serializable]
 public class PlayerInfo
 {
 	public string id;				//the id of player

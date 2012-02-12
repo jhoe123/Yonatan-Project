@@ -15,50 +15,36 @@ public class GameplayNetwork : GameplayScene {
 	//true if the current player is host while false if not
 	static bool mIsHost;
 	public static bool isHost
-	{ get{return isHost;} }
+	{ get{return mIsHost;} }
 	
 	protected override void Awake ()
 	{
-		base.Awake ();
+		mCurrent = this;
 		mView = networkView;
+		mOwnerPlayer = mPlayer1;
+		mOpponentPlayer = mPlayer2;
+		
+		PlayerController controller = (PlayerController)FindObjectOfType( typeof( PlayerController));
 		
 		//init the host and opponent player
-		if( mOwnerInfo.networkPlayer == Network.player )
+		if(  Network.isServer )
 		{
 			mIsHost = true;
-			mOwnerPlayer = mPlayer1;
-			mOpponentPlayer = mPlayer2;
+			mCurrentPlayer = ownerPlayer;
+			controller.Initialize( mOwnerPlayer);
 		}
 		else
 		{
 			mIsHost = false;
-			mOpponentPlayer = mPlayer1;
-			mOwnerPlayer = mPlayer2;
+			mCurrentPlayer = mOpponentPlayer;
+			controller.Initialize( mOpponentPlayer);
 		}
 		
-		mOwnerPlayer.info = mOwnerInfo;
-		mOpponentPlayer.info = mOpponentInfo;
+		base.Awake ();
 		
-		if( mIsHost)
-			InvokeRepeating( "CheckIfOpponentLoaded", 0, 1); 
+		if( !mIsHost)
+			mView.RPC( "OnOpponentLoaded", RPCMode.OthersBuffered );
 	}
-	
-	//@Host: use to check if opponent is loaded
-	void CheckIfOpponentLoaded()
-	{
-		mView.RPC( "IsLoaded", mOpponentInfo.networkPlayer);
-	}
-	
-	#region RPC REQUEST
-	
-	[RPC]
-	//@RPC Client: use to check either the client is already loaded
-	void IsLoaded()
-	{
-		mView.RPC( "OnOpponentLoaded", mOwnerInfo.networkPlayer, mOpponentInfo.networkPlayer );
-	}
-	
-	#endregion
 	
 	#region METHOD CALLBACKS
 	
@@ -68,7 +54,7 @@ public class GameplayNetwork : GameplayScene {
 	{
 		base.OnPlayerGoalStart (pGoalee);
 		if( mIsHost )
-			mView.RPC( "OnPlayerGoalStart", RPCMode.Others, pGoalee.info.networkPlayer);
+			mView.RPC( "OnPlayerGoalStart_N", RPCMode.Others, pGoalee.info.networkPlayer);
 	}
 	
 	//callback when game ends
@@ -77,7 +63,7 @@ public class GameplayNetwork : GameplayScene {
 	{
 		base.OnGameEnd (pWinner);
 		if( mIsHost )
-			mView.RPC( "OnGameEnd", RPCMode.Others, pWinner.info.networkPlayer );
+			mView.RPC( "OnGameEnd_N", RPCMode.Others, pWinner.info.networkPlayer );
 	}
 	
 	#endregion
@@ -87,7 +73,7 @@ public class GameplayNetwork : GameplayScene {
 	[RPC]
 	//@RPC Host: callback when the client was successfully loaded
 	//@param: the player who successfully loaded
-	void OnOpponentLoaded( NetworkPlayer pPlayer )
+	void OnOpponentLoaded()
 	{
 		CancelInvoke( "CheckIfOpponentLoaded");
 		OnGameStart();
@@ -123,7 +109,7 @@ public class GameplayNetwork : GameplayScene {
 	[RPC]
 	//@RPC Client: callback when a player goaled
 	//@param: the player who goaled
-	void OnPlayerGoalStart( NetworkPlayer pGoalee)
+	void OnPlayerGoalStart_N( NetworkPlayer pGoalee)
 	{
 		if( pGoalee == mOwnerInfo.networkPlayer )
 			OnPlayerGoalStart( ownerPlayer);
@@ -143,7 +129,7 @@ public class GameplayNetwork : GameplayScene {
 	[RPC]
 	//@RPC CLient: callback when recieved a game end
 	//@param: the player who winned
-	void OnGameEnd( NetworkPlayer pPlayer)
+	void OnGameEnd_N( NetworkPlayer pPlayer)
 	{
 		if( pPlayer == mOwnerInfo.networkPlayer )
 			OnGameEnd( mOwnerPlayer);
@@ -160,4 +146,10 @@ public class GameplayNetwork : GameplayScene {
 	{}
 
 	#endregion
+	
+	protected override void OnDestroy ()
+	{
+		base.OnDestroy ();
+		mCurrent = this;
+	}
 }

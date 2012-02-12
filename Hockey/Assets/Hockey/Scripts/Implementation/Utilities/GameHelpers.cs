@@ -73,7 +73,7 @@ public class GameHelpers  {
 	public static void AutoJoinGame( JoiningStatusListener pListener)
 	{
 		mPlayOnlineListener = pListener;
-		RetrieveAvailableMatches( "HOCKEY_M", OnMatchesFound, 10);
+		RetrieveAvailableMatches( "HOCKEY_M", OnMatchesFound, 5);
 		mPlayOnlineListener.OnStartSearch();
 	}
 	
@@ -108,24 +108,26 @@ public class GameHelpers  {
 				{
 					Network.Connect( pGameList[i]);
 					mPlayOnlineListener.OnRoomJoined( pGameList[i]);
-					mPlayOnlineListener.OnRoomReady();
+					GameController.mUpdateDelegate += SearchConnectedPlayer;
 					return;
 				}
 			}
 		}
 		
 		//if cant join to any game. then create one
-		Network.InitializeServer( 2, 4321, !Network.HavePublicAddress());
+		Network.InitializeServer( 2, 4192, !Network.HavePublicAddress());
 		MasterServer.RegisterHost( "HOCKEY_M", Network.player.ipAddress);
 		mPlayOnlineListener.OnRoomCreated();
 		GameController.mUpdateDelegate += SearchConnectedPlayer;
 	}
 	
-	//search if there is a player connected
+	//@host: search if there is a player connected
 	static void SearchConnectedPlayer( float pCurrentTime)
 	{
-		if( Network.connections.Length >= 2)
+		if( Network.connections.Length >= 1)
 		{
+			if( Network.isServer )
+				MasterServer.UnregisterHost();
 			GameController.mUpdateDelegate -= SearchConnectedPlayer;
 			mPlayOnlineListener.OnRoomReady();
 		}

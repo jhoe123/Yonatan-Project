@@ -5,8 +5,7 @@ public class PlayerIngame : MonoBehaviour {
 	
 	PlayerInfo mInfo;
 	[SerializeField]
-	GameObject mBallGuard;				//the ballguard being controlled by player
-	[SerializeField]
+	protected GameObject mBallGuard;	//the ballguard being controlled by player
 	GameObject mScoreProto;				//to be instantiated
 	
 	GameObject[] mScoreGUIs;
@@ -18,11 +17,31 @@ public class PlayerIngame : MonoBehaviour {
 		get{ return mBallGuard;}
 	}
 	
-	public PlayerInfo info
+	//the current player information
+	public virtual PlayerInfo info
 	{
 		get{ return mInfo;}
 		set
 		{
+			//for current player use the bottom scorer
+			if( this == GameplayScene.bottomPlayer )
+				mScoreProto = GameplayScene.mCurrent.mBotGUI_Scorer;
+			else
+				mScoreProto = GameplayScene.mCurrent.mTopGUI_Scorer;
+			
+			//initialize the scorer
+			mScoreGUIs = new GameObject[ GameplayScene.maxGoal ];
+			mScoreGUIs[0] = mScoreProto;
+			Vector3 pos = mScoreProto.transform.position;
+			for( int i=1; i<mScoreGUIs.Length; i++)
+			{
+				mScoreGUIs[i] = (GameObject)Instantiate( mScoreProto);
+				mScoreGUIs[i].transform.position = pos + (Vector3.left *-i* 15);
+				mScoreGUIs[i].active = false;
+			}
+			mScoreGUIs[0].active = false;
+			mCurrentScore = 0;
+				
 			mInfo = value;
 		}
 	}
@@ -30,19 +49,7 @@ public class PlayerIngame : MonoBehaviour {
 	
 	//constructor
 	protected virtual void Awake()
-	{
-		mScoreGUIs = new GameObject[ GameplayScene.maxGoal ];
-		mScoreGUIs[0] = mScoreProto;
-		Vector3 pos = mScoreProto.transform.position;
-		for( int i=1; i<mScoreGUIs.Length; i++)
-		{
-			mScoreGUIs[i] = (GameObject)Instantiate( mScoreProto);
-			mScoreGUIs[i].transform.position = pos + (Vector3.left *-i* 15);
-			mScoreGUIs[i].active = false;
-		}
-		mScoreGUIs[0].active = false;
-		mCurrentScore = 0;
-	}
+	{}
 	
 	#region CALLBACKS
 	public virtual void OnGameStart()

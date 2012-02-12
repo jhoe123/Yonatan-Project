@@ -26,7 +26,14 @@ public class PlayerController : GUIObject, GUIPressable {
 	
 	//initialization
 	protected override void Start ()
+	{	
+		if( mPlayer != null )
+			Initialize( mPlayer);
+	}
+	
+	public void Initialize( PlayerIngame pPlayer)
 	{
+		mPlayer = pPlayer;
 		mGuardTrans = player.ballGuard.transform;
 		mWordCam = Camera.mainCamera;
 		base.Start();
@@ -38,6 +45,10 @@ public class PlayerController : GUIObject, GUIPressable {
 			mIsBottomPlayer = true;
 		else
 			mIsBottomPlayer = false;
+		
+		//init camera location and alignment
+		mWordCam.transform.position = mGuardTrans.position + (mGuardTrans.forward * -4 ) + new Vector3(0, 5,0);
+		mWordCam.transform.LookAt( GameplayScene.table.ball.transform);
 	}
 	
 	//callback when start pressing 
