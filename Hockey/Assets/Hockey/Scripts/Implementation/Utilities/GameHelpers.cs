@@ -16,6 +16,18 @@ public class GameHelpers  {
 		return mLocalPlayer;
 	}
 	
+	//use to save the match info
+	//@param 1: the game info
+	public static void UpdateMatchInfo( GameInfo pInfo)
+	{
+		if( true )			//this is online game
+		{
+			
+		}
+		else
+		{}
+	}
+	
 	#region MATCHES RETRIEVAL
 	
 	static OnFoundMatches mResultMatches;

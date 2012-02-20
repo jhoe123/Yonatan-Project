@@ -29,6 +29,7 @@ public class GameplayNetwork : GameplayScene {
 		//init the host and opponent player
 		if(  Network.isServer )
 		{
+			GameHelpers.UpdateMatchInfo( gameInfo);
 			mIsHost = true;
 			mCurrentPlayer = ownerPlayer;
 			controller.Initialize( mOwnerPlayer);
@@ -139,11 +140,15 @@ public class GameplayNetwork : GameplayScene {
 	
 	//@server. callback when the player disconnedted
 	void OnPlayerDisconnected( NetworkPlayer pPlayer )
-	{}
+	{
+		OnGameEnd( currentPlayer);
+		GameHelpers.UpdateMatchInfo( gameInfo);
+	}
 	
 	//@client. callback when disconnected
 	void OnDisconnectedFromServer( NetworkDisconnection pDisconnectionInfo)
-	{}
+	{
+	}
 
 	#endregion
 	

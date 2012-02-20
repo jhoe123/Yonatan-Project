@@ -86,8 +86,11 @@ public class HockeyTable : MonoBehaviour {
 		mRigid.velocity = Vector3.zero;
 	}
 	
+	//callback on gameend
 	public virtual void OnGameEnd( PlayerIngame pWinner)
-	{}
+	{
+		mRigid.velocity = Vector3.zero;
+	}
 	
 	public virtual void OnUpdate( float pCurrentTime)
 	{}

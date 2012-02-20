@@ -107,6 +107,38 @@
      <Compile Include="Assets\Hockey\Scripts\Interfaces\Utils\LerpAnimator.cs" />
      <Compile Include="Assets\Hockey\Scripts\Interfaces\Utils\SObject.cs" />
      <Compile Include="Assets\Hockey\Scripts\Interfaces\Utils\ScriptUtility.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Fonts\tk2dFont.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Fonts\tk2dFontData.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Fonts\tk2dTextMesh.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Gui\tk2dButton.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dAnimatedSprite.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dBaseSprite.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dPixelPerfectHelper.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dSlicedSprite.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dSprite.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dSpriteAnimation.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dSpriteCollection.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dSpriteCollectionData.cs" />
+     <Compile Include="Assets\Qualcomm\Plugins\tk2d\Sprites\tk2dStaticSpriteBatcher.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\CameraDeviceBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\IQCARErrorHandler.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\ITrackableEventHandler.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\ITrackerEventHandler.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\IVirtualButtonEventHandler.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\Image.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\ImageTargetBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\MarkerBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\MaskOutBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\MultiTargetBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\QCARMacros.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\TrackableBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\TrackerBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\TurnOffBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Qualcomm Augmented Reality\Scripts\VirtualButtonBehaviour.cs" />
+     <Compile Include="Assets\Qualcomm\Scripts\CameraDeviceMenu.cs" />
+     <Compile Include="Assets\Qualcomm\Scripts\InitializationErrorHandler.cs" />
+     <Compile Include="Assets\Qualcomm\Scripts\RotateAround.cs" />
+     <Compile Include="Assets\Qualcomm\Scripts\TrackableEventHandler.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d\tk2dIndex.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d_demo\tk2dDemoAnimController.cs" />
      <Compile Include="Assets\TK2DROOT\tk2d_demo\tk2dDemoButtonController.cs" />
@@ -114,10 +146,13 @@
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Particle Shaders\Mobile Multiply Culled.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Miscellaneous Shaders\Mobile Background.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Vertex Colored Shaders\Mobile Transparent Vertex Color.shader" />
+     <None Include="Assets\Qualcomm\License_Readme.txt" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Miscellaneous Shaders\Mobile Detail.shader" />
+     <None Include="Assets\Editor\QCAR\License_Readme.txt" />
      <None Include="Assets\TK2DROOT\tk2d\Shaders\PremulVertexColor.shader" />
      <None Include="Assets\TK2DROOT\tk2d\Shaders\Blend2TexVertexColor.shader" />
      <None Include="Assets\TK2DROOT\tk2d\Shaders\BlendVertexColor.shader" />
+     <None Include="Assets\Qualcomm\Qualcomm Augmented Reality\Shaders\DepthMask.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Lightmap Shaders (Legacy)\Mobile Lightmap Reflective.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Particle Shaders\Mobile Particles Additive Culled.shader" />
      <None Include="Assets\TK2DROOT\tk2d_demo\multiatlas\source.txt" />
@@ -125,12 +160,7 @@
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Lightmap Shaders (Legacy)\Mobile Lightmap Only.shader" />
      <None Include="Assets\Standard Assets (Mobile)\Shaders\Lightmap Shaders (Legacy)\Mobile Lightmap AlphaTest.shader" />
      <None Include="Assets\TK2DROOT\tk2d_demo\demospritecollection\sprites\source.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="Assembly-CSharp-firstpass-vs.csproj">
-      <Project>{99087757-0865-367F-FDBD-A02C5A4B8E49}</Project>
-      <Name>Assembly-CSharp-firstpass-vs</Name>
-    </ProjectReference>
+     <None Include="Assets\Qualcomm\StreamingAssets\QCAR\config.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

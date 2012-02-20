@@ -209,6 +209,7 @@ public class GameplayScene : Scene {
 	//@param: the player who winned
 	public virtual void OnGameEnd( PlayerIngame pWinner)
 	{
+		mPlayerController.enabled = false;
 		mOwnerPlayer.OnGameEnd( pWinner);
 		mOpponentPlayer.OnGameEnd( pWinner);
 		mTable.OnGameEnd( pWinner);

@@ -31,6 +31,11 @@ public class PlayerController : GUIObject, GUIPressable {
 			Initialize( mPlayer);
 	}
 	
+	void OnDisable()
+	{
+		mIsPressed = false;
+	}
+	
 	public void Initialize( PlayerIngame pPlayer)
 	{
 		mPlayer = pPlayer;
